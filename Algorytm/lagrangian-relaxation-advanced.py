@@ -111,8 +111,8 @@ odkryte_sciezki = {t: [] for t in towary}
 for q in range(1, maks_iteracji + 1):
     
     # Obliczamy rozmiar kroku (theta). 
-    # [ZMIANA WOBEC WERSJI PODSTAWOWEJ]: Zmieniono z szybko malejącego (1.0/q) na wolniej malejący krok (180.0 / pierwiastek(q)). Pozwala to na drastyczne podbicie kar powyżej poziomu kosztów 500.
-    theta_q = 180.0 / (q ** 0.5)
+    # [ZMIANA WOBEC WERSJI PODSTAWOWEJ]: Zmieniono z szybko malejącego (1.0/q) na wolniej malejący krok (100 / q). Pozwala to na drastyczne podbicie kar powyżej poziomu kosztów 500.
+    theta_q = 100 / q
     
     sciezki_iteracji = {}
     przeplyw_luki_iteracji = {(i, j): 0 for (i, j) in luki}
