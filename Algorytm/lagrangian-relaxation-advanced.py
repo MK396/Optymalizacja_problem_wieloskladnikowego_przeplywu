@@ -121,7 +121,7 @@ for q in range(1, maks_iteracji + 1):
     # KROK A: ROZWIĄZYWANIE PODPROBLEMÓW (Najkrótsze ścieżki)
     # -------------------------------------------------------------------------
     for t in towary:
-        # Przygotowanie wag w grafie NetworkX: Koszt = bazowy + kara
+        # przygotowanie wag w grafie
         for (i, j) in luki:
             koszt_bazowy = koszty.get((t, i, j), float('inf'))
             G[i][j]['weight'] = max(0.0, koszt_bazowy + w_mnozniki[(i, j)])
@@ -130,18 +130,18 @@ for q in range(1, maks_iteracji + 1):
         ujscie = popyty[t]['ujscie']
         ilosc = popyty[t]['ilosc']
         
-        # Wywołanie algorytmu Dijkstry z biblioteki NetworkX (zwraca węzły)
+        # wywolanie algorytmu dijkstry z biblioteki networkx
         trasa_wezly = nx.shortest_path(G, source=zrodlo, target=ujscie, weight='weight')
         
-        # Konwersja listy węzłów na listę krawędzi (łuków)
+        # lista wezlow na liste krawędzi
         trasa = [(trasa_wezly[m], trasa_wezly[m+1]) for m in range(len(trasa_wezly)-1)]
         sciezki_iteracji[t] = trasa
         
-        # [ZMIANA WOBEC WERSJI PODSTAWOWEJ]: Zapisujemy nową ścieżkę do bazy, aby heurystyka w Kroku B miała więcej opcji do rozdzielania ruchu.
+        # zapisanie nowej sciezki do bazy
         if trasa not in odkryte_sciezki[t]:
             odkryte_sciezki[t].append(trasa)
         
-        # Symulujemy puszczenie całego ruchu tą jedną ścieżką
+        # przepuszczenie towaru po trasie
         for luk in trasa:
             przeplyw_luki_iteracji[luk] += ilosc
 
@@ -157,7 +157,6 @@ for q in range(1, maks_iteracji + 1):
     for t in towary:
         sciezki_z_kosztem = []
         for trasa_z_bazy in odkryte_sciezki[t]:
-            # [ZMIANA WOBEC WERSJI PODSTAWOWEJ]: Ocena ścieżek oparta na rzeczywistych kosztach bazowych (bez kar subgradientowych).
             c_bazowy = sum(koszty[(t, trasa_z_bazy[m][0], trasa_z_bazy[m][1])] for m in range(len(trasa_z_bazy)))
             sciezki_z_kosztem.append((c_bazowy, trasa_z_bazy))
             
@@ -171,13 +170,13 @@ for q in range(1, maks_iteracji + 1):
                 
             mozliwa_alokacja = wolny_popyt
             for luk in trasa_z_bazy:
-                # [ZMIANA WOBEC WERSJI PODSTAWOWEJ]: Sprawdzanie czy na danym łuku jest miejsce przed fizycznym wysłaniem towaru.
+                # sprawdzanie czy na luku jest miejsce
                 dostepne_miejsce = przepustowosci[luk] - biezacy_przeplyw_luki[luk]
                 if dostepne_miejsce < mozliwa_alokacja:
                     mozliwa_alokacja = dostepne_miejsce
             
             if mozliwa_alokacja > 0:
-                # [ZMIANA WOBEC WERSJI PODSTAWOWEJ]: Jeśli znalazło się miejsce, fizycznie alokujemy ruch (rozdzielając żądanie, jeśli trzeba).
+                # jesli jest miejsce, alokujemy towar na tej trasie
                 for luk in trasa_z_bazy:
                     biezacy_przeplyw_luki[luk] += mozliwa_alokacja
                     lokalny_przeplyw_szczegolowy[t][luk] += mozliwa_alokacja
@@ -186,7 +185,7 @@ for q in range(1, maks_iteracji + 1):
                 popyt_zaspokojony[t] += mozliwa_alokacja
                 wolny_popyt -= mozliwa_alokacja
                 
-    # [ZMIANA WOBEC WERSJI PODSTAWOWEJ]: Zapis rozwiązania tylko jeśli heurystyka zdołała przepchnąć całe 100% towaru bez psucia przepustowości. 
+    # zapis jesli nie przekracza przepustowosci i jest lepsze od dotychczasowego
     if all(popyt_zaspokojony[t] == popyty[t]['ilosc'] for t in towary):
         if koszt_fizyczny_iteracji < najlepszy_koszt_dopuszczalny:
             najlepszy_koszt_dopuszczalny = koszt_fizyczny_iteracji
